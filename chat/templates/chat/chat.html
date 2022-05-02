@@ -9,12 +9,60 @@
 
     <!-- エンターキーによるボタン押下を行うために、<button>ではなく<form>と<input type="submit">を使用。
     ボタン押下(=submit)時にページリロードが行われないように、onsubmitの設定の最後に"return false;"を追加。-->
-    <form action="" onsubmit="return false;">
+    <form action="" onsubmit="onsubmitButton_Send(); return false;">
         Message : <input type="text" id="input_message" autocomplete="off" autofocus /><input type="submit" value="Send" />
     </form>
 
     <ul id="list_message"></ul>
 
+    <script>
+        const g_elementInputMessage = document.getElementById( "input_message" );
+        const g_elementListMessage = document.getElementById( "list_message" );
+
+        // WebSocketオブジェクト
+        let ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        const g_socket = new WebSocket( ws_scheme + "://" + window.location.host + "/ws/chat/" );
+
+        // 「Send」ボタンを押したときの処理
+        function onsubmitButton_Send()
+        {
+            // 送信用テキストHTML要素からメッセージ文字列の取得
+            let strMessage = g_elementInputMessage.value;
+            if( !strMessage )
+            {
+                return;
+            }
+
+            // WebSocketを通したメッセージの送信
+            g_socket.send( JSON.stringify( { "message": strMessage } ) );
+
+            // 送信用テキストHTML要素の中身のクリア
+            g_elementInputMessage.value = "";
+        }
+
+        // WebSocketからメッセージ受信時の処理
+        g_socket.onmessage = ( event ) =>
+        {
+            // テキストデータをJSONデータにデコード
+            let data = JSON.parse( event.data );
+
+            // メッセージの整形
+            let strMessage = data["message"];
+
+            // 拡散されたメッセージをメッセージリストに追加
+            let elementLi = document.createElement( "li" );
+            elementLi.textContent = strMessage;
+            g_elementListMessage.prepend( elementLi ); // リストの一番上に追加
+            //g_elementListMessage.append( elementLi );    // リストの一番下に追加
+        };
+
+        // WebSocketクローズ時の処理
+        g_socket.onclose = ( event ) =>
+        {
+            // ウェブページを閉じたとき以外のWebSocketクローズは想定外
+            console.error( "Unexpected : Chat socket closed." );
+        };
+    </script>
 </body>
 
 </html>
