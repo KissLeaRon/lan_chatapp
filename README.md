@@ -5,6 +5,9 @@
 - Python 3.8.10
 `sudo apt install python3-pip`
 
+- Redis-server 5.0.7
+`sudo apt install redis-server`
+
 - Django 4.0.4
 `sudo pip3 install Django`
 
