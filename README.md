@@ -19,7 +19,7 @@
 
 ## launch the app
 
-1. `python(3) manage.py runserver`
+1. `python(3) manage.py runserver 0.0.0.0:8000`
 2. visit "127.0.0.1:8000"
 
 ## 参考文献
