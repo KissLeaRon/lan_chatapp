@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>My Chat</title>
+
+    <style type="text/css">
+        input:read-only, textarea:read-only {
+            background-color: #CCC;
+        }
+
+        html {
+            height: 100%; /* 画面全体を使用する場合のお約束 */
+        }
+
+        body {
+            margin: 0; /* 画面全体を使用する場合のお約束 */
+            padding: 0; /* 画面全体を使用する場合のお約束 */
+            min-height: 100%; /* 画面全体を使用する場合のお約束 */
+            height: 100%; /* 画面全体を使用する場合のお約束 */
+        }
+
+        #div_container {
+            min-height: 100vh; /* 画面全体を使用する場合のお約束 */
+            height: 100%; /* 画面全体を使用する場合のお約束 */
+            display: flex; /* 子要素をflex配置とする */
+            flex-direction: column; /* 子要素のflex配置の方向は列方向（縦方向）*/
+        }
+
+        #div_header {
+            margin: 0px 8px; /* bodyで「margin: 0」にしたのを戻す（ブラウザ領域境界に余白なしでHTML要素が表示されるのを余白ありに戻す） */
+        }
+
+        #div_main {
+            flex: 1; /*親要素の（縦方向の）残り全部を使う*/
+        }
+
+        #div_join_screen {
+            width: 100%; /*親要素(#div_main)の（縦方向の）全部を使う*/
+            height: 100%; /*親要素(#div_main)の（縦方向の）全部を使う*/
+            display: flex; /* 子要素をflex配置とする */
+            align-items: center; /*子要素を上下中央揃えとする。「display: flex」必要*/
+            z-index: 10;
+            background-color: #888;
+        }
+
+        #div_chat_screen {
+            margin: 0px 8px; /* bodyで「margin: 0」にしたのを戻す（ブラウザ領域境界に余白なしでHTML要素が表示されるのを余白ありに戻す） */
+            display: none; /* 初期状態非表示 */
+        }
+    </style>
+</head>
+<body>
+    <div id="div_container">
+
+        <div id="div_header">
+            <h1>My Chat</h1>
+        </div>
+
+        <div id="div_main">
+            <div id="div_join_screen">
+                <!-- エンターキーによるボタン押下を行うために、<button>ではなく<form>と<input type="submit">を使用。
+                ボタン押下(=submit)時にページリロードが行われないように、onsubmitの設定の最後に"return false;"を追加。-->
+                <form action="" onsubmit="onsubmitButton_JoinChat(); return false;" style="text-align: center; width: 100%;">
+                    User name<br />
+                    <input type="text" id="input_username" placeholder="Enter User name" autofocus><br /><br />
+                    <input type="submit" value="Join Chat" />
+                </form>
+            </div>
+
+            <div id="div_chat_screen">
+                <button onclick="onclickButton_LeaveChat()">Leave Chat.</button><br />
+                User name : <input type="text" id="text_username" readonly="readonly"><br />
+                <!-- エンターキーによるボタン押下を行うために、<button>ではなく<form>と<input type="submit">を使用。
+                ボタン押下(=submit)時にページリロードが行われないように、onsubmitの設定の最後に"return false;"を追加。-->
+                <form action="" onsubmit="onsubmitButton_Send(); return false;">
+                    Message : <input type="text" id="input_message" autocomplete="off" autofocus /><input type="submit" value="Send" />
+                </form>
+
+                <ul id="list_message"></ul>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const g_elementDivJoinScreen = document.getElementById( "div_join_screen" );
+        const g_elementDivChatScreen = document.getElementById( "div_chat_screen" );
+        const g_elementInputUserName = document.getElementById( "input_username" );
+
+        const g_elementTextUserName = document.getElementById( "text_username" );
+
+        const g_elementInputMessage = document.getElementById( "input_message" );
+        const g_elementListMessage = document.getElementById( "list_message" );
+
+        // WebSocketオブジェクト
+        let ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        const g_socket = new WebSocket( ws_scheme + "://" + window.location.host + "/ws/chat/" );
+
+        // 「Join」ボタンを押すと呼ばれる関数
+        function onsubmitButton_JoinChat()
+        {
+            // ユーザー名
+            let strInputUserName = g_elementInputUserName.value;
+            if( !strInputUserName )
+            {
+                return;
+            }
+            g_elementTextUserName.value = strInputUserName;
+
+            // サーバーに"join"を送信
+            g_socket.send( JSON.stringify( { "data_type": "join", "username": strInputUserName } ) );
+
+            // 画面の切り替え
+            g_elementDivJoinScreen.style.display = "none";  // 参加画面の非表示
+            g_elementDivChatScreen.style.display = "block";  // チャット画面の表示
+        }
+
+        // 「Leave Chat.」ボタンを押すと呼ばれる関数
+        function onclickButton_LeaveChat()
+        {
+            // メッセージリストのクリア
+            while( g_elementListMessage.firstChild )
+            {
+                g_elementListMessage.removeChild( g_elementListMessage.firstChild );
+            }
+
+            // ユーザー名
+            g_elementTextUserName.value = "";
+
+            // サーバーに"leave"を送信
+            g_socket.send( JSON.stringify( { "data_type": "leave" } ) );
+
+            // 画面の切り替え
+            g_elementDivChatScreen.style.display = "none";  // チャット画面の非表示
+            g_elementDivJoinScreen.style.display = "flex";  // 参加画面の表示
+        }
+
+        // 「Send」ボタンを押したときの処理
+        function onsubmitButton_Send()
+        {
+            // 送信用テキストHTML要素からメッセージ文字列の取得
+            let strMessage = g_elementInputMessage.value;
+            if( !strMessage )
+            {
+                return;
+            }
+
+            // WebSocketを通したメッセージの送信
+            g_socket.send( JSON.stringify( { "message": strMessage } ) );
+
+            // 送信用テキストHTML要素の中身のクリア
+            g_elementInputMessage.value = "";
+        }
+
+        // WebSocketからメッセージ受信時の処理
+        g_socket.onmessage = ( event ) =>
+        {
+            // 自身がまだ参加していないときは、無視。
+            if( !g_elementTextUserName.value )
+            {
+                return;
+            }
+
+            // テキストデータをJSONデータにデコード
+            let data = JSON.parse( event.data );
+
+            // メッセージの整形
+            //let strMessage = data["message"];
+            let strMessage = data["datetime"] + " - [" + data["username"] + "] " + data["message"];
+
+            // 拡散されたメッセージをメッセージリストに追加
+            let elementLi = document.createElement( "li" );
+            elementLi.textContent = strMessage;
+            g_elementListMessage.prepend( elementLi ); // リストの一番上に追加
+            //g_elementListMessage.append( elementLi );    // リストの一番下に追加
+        };
+
+        // WebSocketクローズ時の処理
+        g_socket.onclose = ( event ) =>
+        {
+            // ウェブページを閉じたとき以外のWebSocketクローズは想定外
+            console.error( "Unexpected : Chat socket closed." );
+        };
+    </script>
+</body>
+
+</html>
