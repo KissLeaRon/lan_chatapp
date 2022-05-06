@@ -2,13 +2,21 @@ import json
 import datetime
 from channels.generic.websocket import AsyncWebsocketConsumer
 
+USERNAME_SYSTEM = '*system*'
 
 # ChatConsumerクラス: WebSocketからの受け取ったものを処理するクラス
 class ChatConsumer(AsyncWebsocketConsumer):
     
+    # ルーム管理（クラス変数）
+    rooms = None
+
     # コンストラクタ
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # クラス変数の初期化
+        if ChatConsumer.rooms is None:
+            ChatConsumer.rooms = {}
+
         self.strGroupName = ''
         self.strUserName = ''
 
@@ -73,6 +81,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # グループに参加
         self.strGroupName = 'chat'
         await self.channel_layer.group_add(self.strGroupName, self.channel_name)
+        
+        # 参加人数の更新
+        room = ChatConsumer.rooms.get(self.strGroupName)
+        if(None == room):
+            # ルーム管理にルームを追加
+            ChatConsumer.rooms[self.strGroupName] = {'participants_count' : 1}
+        else:
+            room['participants_count'] += 1
+
+        strMessage = '"' + self.strUserName + '" joined. There are ' + str(ChatConsumer.rooms[self.strGroupName]['participants_count']) + 'participants.'
+        data = {
+            'type' : 'chat_message',
+            'message' : strMessage,
+            'username' : USERNAME_SYSTEM,
+            'datetime' : datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
+        }
+        await self.channel_layer.group_send(self.strGroupName, data)
+
 
     # チャットから離脱
     async def leave_chat(self):
@@ -82,5 +108,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # グループから離脱
         await self.channel_layer.group_discard(self.strGroupName, self.channel_name)
         
+        # 参加人数の更新
+        ChatConsumer.rooms[self.strGroupName]['participants_count'] -= 1
+        # システムメッセージ
+        strMessage = '"' + self.strUserName + '" left. There are' + str(ChatConsumer.rooms[self.strGroupName]['participants_count']) + ' participants.'
+        # メッセージ送信
+        data = {
+            'type' : 'chat_message',
+            'message' : strMessage,
+            'username' : USERNAME_SYSTEM,
+            'datetime' : datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
+        }
+        await self.channel_layer.group_send(self.strGroupName, data)
+
+        if(0 == ChatConsumer.rooms[self.strGroupName]['participants_count']):
+            del ChatConsumer.rooms[self.strGroupName]
+
         # ルーム名を空に
         self.strGroupName = ''
