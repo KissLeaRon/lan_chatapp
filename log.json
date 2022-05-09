@@ -1,0 +1,16 @@
+{
+  "type": "chat_message",
+  "message": "a",
+  "username": "sender",
+  "datetime": "2022/05/09 22:55:38"
+}{
+  "type": "chat_message",
+  "message": "test",
+  "username": "sender",
+  "datetime": "2022/05/09 22:55:39"
+}{
+  "type": "chat_message",
+  "message": "go",
+  "username": "sender",
+  "datetime": "2022/05/09 22:55:41"
+}
