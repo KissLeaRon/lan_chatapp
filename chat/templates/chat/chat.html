@@ -76,7 +76,8 @@
                 <form action="" onsubmit="onsubmitButton_Send(); return false;">
                     Message : <input type="text" id="input_message" autocomplete="off" autofocus /><input type="submit" value="Send" />
                 </form>
-
+		{% load static %} <!-- need this line-->
+		<!-- <img src="{% static "images/shortcake.jpg"%}"> -->
                 <ul id="list_message"></ul>
 
             </div>
@@ -169,9 +170,24 @@
             //let strMessage = data["message"];
             let strMessage = data["datetime"] + " - [" + data["username"] + "] " + data["message"];
 
+
             // 拡散されたメッセージをメッセージリストに追加
             let elementLi = document.createElement( "li" );
             elementLi.textContent = strMessage;
+
+	    //if ("img" in data){
+	    if (data["message"][0] == 'a'){
+		let elementImg = document.createElement('img');
+		//elementImg.width = 400;
+		//elementImg.width = 400;
+		//<img src="{% static "images/shortcake.jpg"%}">
+		elementImg.src = "{% static "images/shortcake.jpg"%}";  // SHORTCAKE!!!!!
+		elementBr = document.createElement("br");
+		
+		elementLi.appendChild(elementBr);
+		elementLi.appendChild(elementImg);
+		elementLi.appendChild(elementBr);
+	    }
             g_elementListMessage.prepend( elementLi ); // リストの一番上に追加
             //g_elementListMessage.append( elementLi );    // リストの一番下に追加
         };
