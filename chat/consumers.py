@@ -62,7 +62,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'datetime' : datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'), # 現在時刻
             }
             await self.channel_layer.group_send(self.strGroupName, data)
-
+            with open('log.json', mode='a') as f:
+            	json.dump(data, f, indent=2)
+            	
     # 拡散メッセージ受信時の処理
     # （self.channel_layer.group_send()の結果、グループ内の全コンシューマーにメッセージ拡散され、各コンシューマーは本関数で受信処理します）
     async def chat_message(self, data):
@@ -90,7 +92,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         else:
             room['participants_count'] += 1
 
-        strMessage = '"' + self.strUserName + '" joined. There are ' + str(ChatConsumer.rooms[self.strGroupName]['participants_count']) + 'participants.'
+        strMessage = '"' + self.strUserName + '" joined. There are ' + str(ChatConsumer.rooms[self.strGroupName]['participants_count']) + ' participants.'
         data = {
             'type' : 'chat_message',
             'message' : strMessage,
@@ -111,7 +113,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # 参加人数の更新
         ChatConsumer.rooms[self.strGroupName]['participants_count'] -= 1
         # システムメッセージ
-        strMessage = '"' + self.strUserName + '" left. There are' + str(ChatConsumer.rooms[self.strGroupName]['participants_count']) + ' participants.'
+        strMessage = '"' + self.strUserName + '" left. There are ' + str(ChatConsumer.rooms[self.strGroupName]['participants_count']) + ' participants.'
         # メッセージ送信
         data = {
             'type' : 'chat_message',
