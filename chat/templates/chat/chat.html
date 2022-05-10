@@ -76,7 +76,9 @@
                 <form action="" onsubmit="onsubmitButton_Send(); return false;">
                     Message : <input type="text" id="input_message" autocomplete="off" autofocus /><input type="submit" value="Send" />
                 </form>
-
+		{% load static %} <!--この行は必要じゃないかもしれない-->
+		<!-- ローカルに保存した画像からレンダリングしようとした名残です-->
+		<input type="file", id="select_file">
                 <ul id="list_message"></ul>
 
             </div>
@@ -92,6 +94,19 @@
 
         const g_elementInputMessage = document.getElementById( "input_message" );
         const g_elementListMessage = document.getElementById( "list_message" );
+
+	//追加したfile選択ボタンの状況を監視する。
+        var inputFiles = document.getElementById( "select_file" );
+	inputFiles.addEventListener("change",file_change, false);
+	var reader = new FileReader(); //こいつは選択したファイルをbase64のバイナリ文字列に変換してくれるらしい.
+
+	//選択しているファイルが変更された時に呼ばれる
+	function file_change(ev){
+		var target = ev.target;
+		var file = target.files[0];
+		//console.log(file);
+		reader.readAsDataURL(file)
+	}
 
         // WebSocketオブジェクト
         let ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
@@ -109,7 +124,7 @@
             g_elementTextUserName.value = strInputUserName;
 
             // サーバーに"join"を送信
-            g_socket.send( JSON.stringify( { "data_type": "join", "username": strInputUserName } ) );
+            g_socket.send( JSON.stringify( { "data_type": "join", "username": strInputUserName ,"img_base64" : null} ) );
 
             // 画面の切り替え
             g_elementDivJoinScreen.style.display = "none";  // 参加画面の非表示
@@ -141,13 +156,15 @@
         {
             // 送信用テキストHTML要素からメッセージ文字列の取得
             let strMessage = g_elementInputMessage.value;
+	    let img_base64 = reader.result; // readerは現在選択している画像のbase64を持ってそう
             if( !strMessage )
             {
                 return;
             }
-
+		
             // WebSocketを通したメッセージの送信
-            g_socket.send( JSON.stringify( { "message": strMessage } ) );
+		//属性を追加した
+            g_socket.send( JSON.stringify( { "message": strMessage , "img_base64": img_base64} ) );
 
             // 送信用テキストHTML要素の中身のクリア
             g_elementInputMessage.value = "";
@@ -164,14 +181,33 @@
 
             // テキストデータをJSONデータにデコード
             let data = JSON.parse( event.data );
+	    console.log(data);
 
             // メッセージの整形
             //let strMessage = data["message"];
             let strMessage = data["datetime"] + " - [" + data["username"] + "] " + data["message"];
 
+
             // 拡散されたメッセージをメッセージリストに追加
             let elementLi = document.createElement( "li" );
             elementLi.textContent = strMessage;
+
+	    //data.img_base64が""でなければ画像を追加する
+	    if(data["img_base64"]){
+		let elementImg = document.createElement('img');
+		//elementImg.width = 400; //画像が大きすぎたりしたらこの辺をいじるといい
+		//elementImg.width = 400;
+		elementImg.src = data["img_base64"];
+		elementBr = document.createElement("br");
+		elementp = document.createElement("p");
+
+		elementp.appendChild(elementImg);
+		elementLi.appendChild(elementp);
+		console.log(elementLi);
+
+		let inputFiles = document.getElementById( "select_file" );
+		inputFiles.value = "";
+	    }
             g_elementListMessage.prepend( elementLi ); // リストの一番上に追加
             //g_elementListMessage.append( elementLi );    // リストの一番下に追加
         };
