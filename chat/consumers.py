@@ -65,7 +65,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             # logファイルの保存
             with open('chat.log', mode='a') as f:
-                f.write(str(data)+'\n')
+                f.write(json.dumps(data)+'\n')
             	
     # 拡散メッセージ受信時の処理
     # （self.channel_layer.group_send()の結果、グループ内の全コンシューマーにメッセージ拡散され、各コンシューマーは本関数で受信処理します）
@@ -101,8 +101,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'username' : USERNAME_SYSTEM,
             'datetime' : datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
         }
+
+        # logを表示
+        with open('chat.log') as f:
+            tmp = f.readlines()
+        for i in range(1,min(51,len(tmp))):
+            await self.channel_layer.send(self.channel_name, json.loads(tmp[-i]))
+
+        # 入室システムメッセージを送信
         await self.channel_layer.group_send(self.strGroupName, data)
-        await self.channel_layer.send(self.channel_name,data)
 
 
     # チャットから離脱
