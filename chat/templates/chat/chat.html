@@ -76,8 +76,8 @@
                 <form action="" onsubmit="onsubmitButton_Send(); return false;">
                     Message : <input type="text" id="input_message" autocomplete="off" autofocus /><input type="submit" value="Send" />
                 </form>
-		{% load static %} <!-- need this line-->
-		<!-- <img src="{% static "images/shortcake.jpg"%}"> -->
+		{% load static %} <!--この行は必要じゃないかもしれない-->
+		<!-- ローカルに保存した画像からレンダリングしようとした名残です-->
 		<input type="file", id="select_file">
                 <ul id="list_message"></ul>
 
@@ -95,12 +95,12 @@
         const g_elementInputMessage = document.getElementById( "input_message" );
         const g_elementListMessage = document.getElementById( "list_message" );
 
-	//file uploader
+	//追加したfile選択ボタンの状況を監視する。
         var inputFiles = document.getElementById( "select_file" );
 	inputFiles.addEventListener("change",file_change, false);
-	var reader = new FileReader();
+	var reader = new FileReader(); //こいつは選択したファイルをbase64のバイナリ文字列に変換してくれるらしい.
 
-	//選択しているファイルが変更された時に呼ばれるやつ
+	//選択しているファイルが変更された時に呼ばれる
 	function file_change(ev){
 		var target = ev.target;
 		var file = target.files[0];
@@ -156,14 +156,14 @@
         {
             // 送信用テキストHTML要素からメッセージ文字列の取得
             let strMessage = g_elementInputMessage.value;
-	    let img_base64 = reader.result;
-	    //console.log(img_base64);
+	    let img_base64 = reader.result; // readerは現在選択している画像のbase64を持ってそう
             if( !strMessage )
             {
                 return;
             }
 		
             // WebSocketを通したメッセージの送信
+		//属性を追加した
             g_socket.send( JSON.stringify( { "message": strMessage , "img_base64": img_base64} ) );
 
             // 送信用テキストHTML要素の中身のクリア
@@ -192,19 +192,17 @@
             let elementLi = document.createElement( "li" );
             elementLi.textContent = strMessage;
 
-	    //if ("img_base64" in data){
+	    //data.img_base64が""でなければ画像を追加する
 	    if(data["img_base64"]){
 		let elementImg = document.createElement('img');
+		//elementImg.width = 400; //画像が大きすぎたりしたらこの辺をいじるといい
 		//elementImg.width = 400;
-		//elementImg.width = 400;
-		//<img src="{% static "images/shortcake.jpg"%}">
-		//elementImg.src = "{% static "images/shortcake.jpg"%}";  // SHORTCAKE!!!!!
 		elementImg.src = data["img_base64"];
 		elementBr = document.createElement("br");
-		
-		elementLi.appendChild(elementBr);
-		elementLi.appendChild(elementImg);
-		elementLi.appendChild(elementBr);
+		elementp = document.createElement("p");
+
+		elementp.appendChild(elementImg);
+		elementLi.appendChild(elementp);
 		console.log(elementLi);
 
 		let inputFiles = document.getElementById( "select_file" );
