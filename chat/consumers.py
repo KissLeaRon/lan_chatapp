@@ -103,10 +103,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }
 
         # logを表示
+        with open('chat.log', mode='a') as f:
+            pass
         with open('chat.log') as f:
             tmp = f.readlines()
         for i in range(1,min(51,len(tmp))):
-            await self.channel_layer.send(self.channel_name, json.loads(tmp[-i]))
+            await self.channel_layer.send(self.channel_name, json.loads(tmp[-(min(51,len(tmp))-i)]))
 
         # 入室システムメッセージを送信
         await self.channel_layer.group_send(self.strGroupName, data)
