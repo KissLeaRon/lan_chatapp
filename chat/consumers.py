@@ -62,8 +62,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'datetime' : datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'), # 現在時刻
             }
             await self.channel_layer.group_send(self.strGroupName, data)
-            with open('log.json', mode='a') as f:
-            	json.dump(data, f, indent=2)
+
+            # logファイルの保存
+            with open('chat.log', mode='a') as f:
+                f.write(str(data)+'\n')
             	
     # 拡散メッセージ受信時の処理
     # （self.channel_layer.group_send()の結果、グループ内の全コンシューマーにメッセージ拡散され、各コンシューマーは本関数で受信処理します）
@@ -100,6 +102,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'datetime' : datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
         }
         await self.channel_layer.group_send(self.strGroupName, data)
+        await self.channel_layer.send(self.channel_name,data)
 
 
     # チャットから離脱
