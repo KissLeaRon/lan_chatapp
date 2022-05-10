@@ -63,6 +63,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
             await self.channel_layer.group_send(self.strGroupName, data)
 
+            # logファイルの保存
+            with open('chat.log', mode='a') as f:
+                f.write(json.dumps(data)+'\n')
+            	
     # 拡散メッセージ受信時の処理
     # （self.channel_layer.group_send()の結果、グループ内の全コンシューマーにメッセージ拡散され、各コンシューマーは本関数で受信処理します）
     async def chat_message(self, data):
@@ -90,13 +94,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
         else:
             room['participants_count'] += 1
 
-        strMessage = '"' + self.strUserName + '" joined. There are ' + str(ChatConsumer.rooms[self.strGroupName]['participants_count']) + 'participants.'
+        strMessage = '"' + self.strUserName + '" joined. There are ' + str(ChatConsumer.rooms[self.strGroupName]['participants_count']) + ' participants.'
         data = {
             'type' : 'chat_message',
             'message' : strMessage,
             'username' : USERNAME_SYSTEM,
             'datetime' : datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
         }
+
+        # logを表示
+        with open('chat.log', mode='a') as f:
+            pass
+        with open('chat.log') as f:
+            tmp = f.readlines()
+        for i in range(1,min(51,len(tmp))):
+            await self.channel_layer.send(self.channel_name, json.loads(tmp[-(min(51,len(tmp))-i)]))
+
+        # 入室システムメッセージを送信
         await self.channel_layer.group_send(self.strGroupName, data)
 
 
@@ -111,7 +125,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # 参加人数の更新
         ChatConsumer.rooms[self.strGroupName]['participants_count'] -= 1
         # システムメッセージ
-        strMessage = '"' + self.strUserName + '" left. There are' + str(ChatConsumer.rooms[self.strGroupName]['participants_count']) + ' participants.'
+        strMessage = '"' + self.strUserName + '" left. There are ' + str(ChatConsumer.rooms[self.strGroupName]['participants_count']) + ' participants.'
         # メッセージ送信
         data = {
             'type' : 'chat_message',
