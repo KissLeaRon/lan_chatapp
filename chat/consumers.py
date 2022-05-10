@@ -54,10 +54,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         else:
             # メッセージの取り出し
             strMessage = text_data_json['message']
+            img_base64 = text_data_json['img_base64']
         # グループ内の全コンシューマーにメッセージ拡散送信（受信関数を'type'で指定）
             data = {
                 'type': 'chat_message', # 受信処理関数名
                 'message': strMessage, # メッセージ
+                'img_base64' : img_base64, #image as binary
                 'username' : self.strUserName, # ユーザー名
                 'datetime' : datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'), # 現在時刻
             }
@@ -68,6 +70,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, data):
         data_json = {
             'message' : data['message'],
+            'img_base64' : data['img_base64'],
             'username' : data['username'],
             'datetime' : data['datetime'],
         }
@@ -94,6 +97,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data = {
             'type' : 'chat_message',
             'message' : strMessage,
+            'img_base64' : "",
             'username' : USERNAME_SYSTEM,
             'datetime' : datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
         }
@@ -116,6 +120,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data = {
             'type' : 'chat_message',
             'message' : strMessage,
+            'img_base64' : "",
             'username' : USERNAME_SYSTEM,
             'datetime' : datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
         }
