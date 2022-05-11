@@ -206,7 +206,7 @@
             elementLi.textContent = strMessage;
 
 	    //data.img_base64が"", "data:"でなければ画像を追加する
-	    if(data["img_base64"] && (data["img_base64"] != "data:") ){
+	    if(data["img_base64"] && (data["img_base64"].match("data:image")) ){
 		let elementImg = document.createElement('img');
 		//elementImg.width = 400; //画像が大きすぎたりしたらこの辺をいじるといい
 		//elementImg.width = 400;
