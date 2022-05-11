@@ -105,7 +105,8 @@
 		var target = ev.target;
 		var file = target.files[0];
 		//console.log(file);
-		reader.readAsDataURL(file)
+		console.log("file_change");
+		reader.readAsDataURL(file);
 	}
 
         // WebSocketオブジェクト
@@ -168,6 +169,18 @@
 
             // 送信用テキストHTML要素の中身のクリア
             g_elementInputMessage.value = "";
+
+	    /*コメント
+	    入力を受け付けたらそれらを消すって操作をかなり頓智気な位置に配置してた
+	    reader.result 属性はreadonlyらしいので、
+	    新しく空のBlobインスタンスを読み込ませて上書きさせたら、元のファイルの情報はなくなる
+	    なお、data["img_base64"]="data:"となるので、それに対応が必要
+	    */
+	    // let inputFiles = document.getElementById( "select_file" );
+   	    inputFiles.value = "";
+	    var f = new Blob();
+	    reader.readAsDataURL(f);
+	    console.log(reader.result);
         }
 
         // WebSocketからメッセージ受信時の処理
@@ -192,8 +205,8 @@
             let elementLi = document.createElement( "li" );
             elementLi.textContent = strMessage;
 
-	    //data.img_base64が""でなければ画像を追加する
-	    if(data["img_base64"]){
+	    //data.img_base64が"", "data:"でなければ画像を追加する
+	    if(data["img_base64"] && (data["img_base64"] != "data:") ){
 		let elementImg = document.createElement('img');
 		//elementImg.width = 400; //画像が大きすぎたりしたらこの辺をいじるといい
 		//elementImg.width = 400;
@@ -203,10 +216,8 @@
 
 		elementp.appendChild(elementImg);
 		elementLi.appendChild(elementp);
-		console.log(elementLi);
+		//console.log(elementLi);
 
-		let inputFiles = document.getElementById( "select_file" );
-		inputFiles.value = "";
 	    }
             g_elementListMessage.prepend( elementLi ); // リストの一番上に追加
             //g_elementListMessage.append( elementLi );    // リストの一番下に追加
