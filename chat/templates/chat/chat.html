@@ -208,9 +208,17 @@
 	    //data.img_base64が"", "data:"でなければ画像を追加する
 	    if(data["img_base64"] && (data["img_base64"].match("data:image")) ){
 		let elementImg = document.createElement('img');
-		//elementImg.width = 400; //画像が大きすぎたりしたらこの辺をいじるといい
-		//elementImg.width = 400;
 		elementImg.src = data["img_base64"];
+		// 画像リサイズ
+		if((elementImg.naturalWidth > 400) || (elementImg.naturalHeight > 400)){
+			if(elementImg.naturalWidth > elementImg.naturalHeight){
+				elementImg.width = 400;
+				elementImg.height = elementImg.naturalHeight * 400 / elementImg.naturalWidth;
+			}else{
+				elementImg.width = elementImg.naturalWidth * 400 / elementImg.naturalHeight;
+				elementImg.height = 400;
+			}
+		}
 		elementBr = document.createElement("br");
 		elementp = document.createElement("p");
 
