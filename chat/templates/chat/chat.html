@@ -210,13 +210,15 @@
 		let elementImg = document.createElement('img');
 		elementImg.src = data["img_base64"];
 		// 画像リサイズ
-		if((elementImg.naturalWidth > 400) || (elementImg.naturalHeight > 400)){
-			if(elementImg.naturalWidth > elementImg.naturalHeight){
-				elementImg.width = 400;
-				elementImg.height = elementImg.naturalHeight * 400 / elementImg.naturalWidth;
-			}else{
-				elementImg.width = elementImg.naturalWidth * 400 / elementImg.naturalHeight;
-				elementImg.height = 400;
+		elementImg.onload = function(){
+			if((elementImg.naturalWidth > 400) || (elementImg.naturalHeight > 400)){
+				if(elementImg.naturalWidth > elementImg.naturalHeight){
+					elementImg.width = 400;
+					elementImg.height = elementImg.naturalHeight * 400 / elementImg.naturalWidth;
+				}else{
+					elementImg.width = elementImg.naturalWidth * 400 / elementImg.naturalHeight;
+					elementImg.height = 400;
+				}
 			}
 		}
 		elementBr = document.createElement("br");
