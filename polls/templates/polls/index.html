@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+  <head>
+    <meta charset="utf-8">
+    <title>log index</title>
+  </head>
+
+  <body>
+	<ul>
+	{% for name in files %}
+		<a href={{name}}><li>{{name}}</li></a>
+	{% endfor %}
+	</ul>
+  </body>
+
+</html>
+

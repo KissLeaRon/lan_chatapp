@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charest="utf-8">
+	<title>{{title}}</title>
+</head>
+
+<body>
+	<h1>{{title}}</h1>
+	<ul>
+		{# forで回せるらしい #}
+		{% for log in logs_list %}
+			<li>{{log.4}}-[{{log.3}}] {{log.1}}</li>
+		{% endfor %}
+	</ul>
+</body>
+
+</html>
