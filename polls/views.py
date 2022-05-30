@@ -15,7 +15,6 @@ def log(request, year, month, day):
             tmp = json.loads(s)
             logs_list.append(list(tmp.values()))
     
-    logs_list.sort()
     context = {
             'logs_list':logs_list,
             'title':title,
@@ -27,6 +26,8 @@ def log(request, year, month, day):
 def index(request):
     files = glob.glob('polls/log/*')
     files = list(map(lambda x:x[10:20], files))
+    files.sort()
+
     context = {
             'files':files
         }
