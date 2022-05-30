@@ -14,7 +14,8 @@ def log(request, year, month, day):
         if len(s) != 0:
             tmp = json.loads(s)
             logs_list.append(list(tmp.values()))
-
+    
+    logs_list.sort()
     context = {
             'logs_list':logs_list,
             'title':title,
