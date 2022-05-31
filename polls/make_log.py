@@ -15,7 +15,7 @@ for s in hoge:
 for s in logs_dict:
     file_name = s['datetime'][:10]
     file_name = file_name.replace('/','_')
-    with open('log/'+file_name+'.log', 'a+') as f:
+    with open('log/'+file_name+'.log', 'a') as f:
         f.write(json.dumps(s)+'\n')
 
 with open(path, 'w') as f:
