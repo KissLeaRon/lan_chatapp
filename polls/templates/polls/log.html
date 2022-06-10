@@ -12,8 +12,23 @@
 		{# forで回せるらしい #}
 		{% for log in logs_list %}
 			<li>{{log.4}}-[{{log.3}}] {{log.1}}</li>
+			{% if 'base64' in log.2 %}
+				<script>
+				var elementImg = document.getElementById('Image');
+				elementImg.onload = function(){
+				if((elementImg.naturalWidth > 400) || (elementImg.naturalHeight > 400)){
+					if(elementImg.naturalWidth > elementImg.naturalHeight){
+						elementImg.width = 400;
+						elementImg.height = elementImg.naturalHeight * 400 / elementImg.naturalWidth;
+					}else{
+						elementImg.width = elementImg.naturalWidth * 400 / elementImg.naturalHeight;
+						elementImg.height = 400;
+					}
+				}
+				</script>
+				<img src="{{log.2}}" id="Image">
+			{% endif %}
 		{% endfor %}
 	</ul>
 </body>
 
-</html>
